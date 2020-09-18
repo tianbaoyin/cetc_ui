@@ -161,9 +161,7 @@ export default {
     },
 
     openPageOffice(row) {
-      console.log(row)
-      // console.log("javascript:POBrowser.openWindowModeless('http://localhost:9807/word?docLocation=" + row.docLocation + "','width=1200px;height=800px;');")
-      window.location.href = "javascript:POBrowser.openWindowModeless('http://192.168.0.105:9807/word?templateId=" + row.id + "','width=1200px;height=800px;');"
+      window.location.href = "javascript:POBrowser.openWindowModeless('http://localhost:9807/word?templateId=" + row.id + "','width=1200px;height=800px;');"
     }
   }
 }

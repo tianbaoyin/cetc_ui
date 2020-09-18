@@ -8,9 +8,12 @@
       :before-close="beforeClose"
       :visible.sync="drawer"
       :with-header="true"
+      append-to-body
     >
+      <span slot="title" style="color:#336633;font-size:20px"><svg-icon icon-class="log" />测试执行编辑</span>
+
       <div>
-        <testExecuteAdd :projectexcute="currentExcute" :pagecount="pageCount" @closeDrawer="closeDrawer" />
+        <testExecuteAdd :month-commit-form="monthCommitForm" :projectexcute="currentExcute" :pagecount="pageCount" @closeDrawer="closeDrawer" />
       </div>
     </el-drawer>
     <el-table
@@ -26,33 +29,33 @@
         width="80"
       />
       <el-table-column
-        header-align="center"
+
         label="摘要"
         prop="name"
       />
       <el-table-column
-        align="center"
+
         label="执行时间"
         prop="useTime"
       />
       <el-table-column
-        header-align="center"
+
         label="执行地点"
         prop="excuteLocal"
       />
       <el-table-column
-        align="center"
+
         label="执行人数"
         prop="excuters"
       />
       <el-table-column
-        align="center"
+
         label="执行用例数"
         prop="examples"
       />
       <el-table-column
         v-if="checkPermission(['root','project_manager_project_third_info_execution_edit','project_manager_project_third_info_execution_delete'])"
-        align="center"
+
         width="200px"
         label="操作"
       >
@@ -82,6 +85,11 @@ export default {
     node: {
       type: Object,
       required: true
+    },
+
+    monthCommitForm: {
+      type: Object,
+      required: true
     }
   },
   data() {
@@ -94,7 +102,8 @@ export default {
       searchEntity: {
         pageNum: 1,
         pageSize: 10,
-        projectId: this.node.id
+        projectId: this.node.id,
+        monthCommitId: this.monthCommitForm.id
       },
       currentExcute: {},
       projectExcute: {
@@ -112,7 +121,16 @@ export default {
   watch: {
     node() {
       this.searchEntity.projectId = this.node.id
-      this.pageList()
+      if (this.monthCommitForm.id) {
+        this.pageList()
+      }
+    },
+    monthCommitForm() {
+      this.searchEntity.projectId = this.node.id
+      this.searchEntity.monthCommitId = this.monthCommitForm.id
+      if (this.monthCommitForm.id) {
+        this.pageList()
+      }
     }
   },
   created() {
@@ -121,13 +139,21 @@ export default {
   methods: {
     checkPermission,
     add() {
+      this.projectExcute = {
+        projectId: this.node.id,
+        name: '',
+        useTime: '',
+        excuteLocal: '',
+        excuters: '',
+        examples: '',
+        passFlag: false
+      }
       this.currentExcute = this.projectExcute
       this.pageCount = this.pageCount + 1
       this.drawer = true
     },
     update(data) {
       this.currentExcute = data
-
       this.pageCount = this.pageCount + 1
       this.drawer = true
     },
@@ -179,3 +205,8 @@ export default {
   }
 }
 </script>
+ <style >
+:focus {
+   outline: 0;
+ }
+</style>

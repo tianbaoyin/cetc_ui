@@ -1,5 +1,5 @@
 <template>
-  <div class="block">
+  <div style="height:800px; overflow:auto">
     <div class="filter-container">
       <el-button
         type="primary"
@@ -15,12 +15,15 @@
         :visible.sync="drawer"
         :before-close="handleClose"
         size="70%"
+        append-to-body
       >
         <span slot="title" style="color:#696969;font-size:20px"><svg-icon icon-class="leida" />    项目月度报表</span>
-        <addMonthCommit />
+
+        <addMonthCommit :node="node" :month-commit-form="monthCommitForm" />
+
       </el-drawer>
 
-      <el-timeline>
+      <el-timeline v-loading="loading">
         <el-timeline-item
           v-for="(activity, index) in activities"
           :key="index"
@@ -28,15 +31,18 @@
           :type="activity.type"
           :color="activity.color"
           :size="activity.size"
-          :timestamp="activity.timestamp"
+          :timestamp="activity.commitTimeStr"
           placement="top"
         >
           <el-card>
             <div slot="header" class="clearfix">
               <span>月度报表</span>
-              <el-button style="float: right; padding: 3px 0" type="text"> 详情...</el-button>
+              <el-button style="float: right; padding: 5px 5px ;margin-left:10px" type="danger" icon="el-icon-delete" circle @click="handleEditMonthCommit()" />
+              <el-button style="float: right; padding: 5px 5px" type="primary" icon="el-icon-edit" circle @click="handleEditMonthCommit(activity)" />
+
             </div>
-            <p>本月更新了11条测试用例</p>
+            <h4>{{ activity.commitMan }}提交于{{ activity.createTimeStr }}</h4>
+            <p> {{ activity.remarks }}</p>
           </el-card>
         </el-timeline-item>
       </el-timeline>
@@ -45,28 +51,49 @@
 
     <el-dialog v-dialogDrag title="项目月度报表" :close-on-click-modal="false" :visible.sync="dialogFormVisible">
       <el-form ref="ruleForm" :rules="rules" :model="monthCommitForm">
-        <el-form-item label="上报人" :label-width="formLabelWidth" prop="creater">
-          <el-select v-model="monthCommitForm.creater" filterable clearable style="width:300px" placeholder="请输入内容">
-            <el-option
-              v-for="item in users"
-              :key="item.username"
-              :label="item.fullname"
-              :value="item.username"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="上报时间" :label-width="formLabelWidth" prop="date">
-          <el-date-picker
-            v-model="monthCommitForm.date"
-            style="width:300px"
-            type="month"
-            placeholder="选择月"
-          />
-        </el-form-item>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="上报人" :label-width="formLabelWidth" prop="commitMan">
+              <el-select v-model="monthCommitForm.commitMan" disabled filterable clearable style="width:100%" placeholder="请输入内容">
+                <el-option
+                  v-for="item in users"
+                  :key="item.username"
+                  :label="item.fullname"
+                  :value="item.username"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="上报月份" :label-width="formLabelWidth" prop="commitTime">
+              <el-date-picker
+                v-model="monthCommitForm.commitTime"
+                style="width:100%"
+                type="month"
+                placeholder="选择月"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="备注" :label-width="formLabelWidth" prop="remarks">
+              <el-input
+                v-model="monthCommitForm.remarks"
+                maxlength="300"
+                show-word-limit
+                type="textarea"
+                rows="4"
+                style="width:100%"
+                placeholder="请输入内容"
+              />
+            </el-form-item>
+          </el-col>
+
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+        <el-button type="primary" @click="save()">确 定</el-button>
       </div>
     </el-dialog>
 
@@ -74,57 +101,68 @@
 </template>
 
 <script>
+
+import store from '@/store'
 import { findUserListIsNotSys } from '@/api/user.js'
+import { add, findAll } from '@/api/project/projectMonthCommit.js'
 import addMonthCommit from '@/views/qc/project/project/treenode/nodethird/monthCommit/components/addMonthCommit.vue'
 export default {
   components: {
     addMonthCommit
 
   },
+  props: {
+    node: {
+      type: Object,
+      required: true
+    },
+    tab3: {
+      type: String,
+      requird: true,
+      default: ''
+    }
+
+  },
+
   data() {
     return {
-      activities: [{
-        content: '支持使用图标',
-        timestamp: '2018-04-12 20:46',
-        size: 'large',
-        type: 'primary',
-        icon: 'el-icon-more'
-      }, {
-        content: '支持自定义颜色',
-        timestamp: '2018-04-03 20:46',
-        color: '#0bbd87'
-      }, {
-        content: '支持自定义尺寸',
-        timestamp: '2018-04-03 20:46',
-        size: 'large'
-      }, {
-        content: '默认样式的节点',
-        timestamp: '2018-04-03 20:46'
-      }],
+      activities: [],
       drawer: false,
       dialogFormVisible: false,
       formLabelWidth: '120px',
       users: [],
       monthCommitForm: {
-        creater: '',
-        date: ''
+        id: null,
+        commitMan: '',
+        commitTime: '',
+        projectId: null,
+        remarks: null
 
       },
       rules: {
-        creater: [
-          { required: true, message: '请选择上报人', trigger: 'blur' }
-        ],
-        date: [
+        commitTime: [
           { required: true, message: '请选择上报时间', trigger: 'change' }
         ]
-      }
+      },
+      loading: false
     }
   },
+
+  watch: {
+    node(val) {
+      this.findAll()
+    },
+    tab3(val) {
+      this.findAll()
+    }
+
+  },
+
   created() {
     this.findAllUsers()
+    this.findAll()
   },
   methods: {
-
     findAllUsers() {
       findUserListIsNotSys().then(response => {
         this.users = response.data
@@ -132,9 +170,57 @@ export default {
 
       })
     },
+    findAll() {
+      this.loading = true
+      findAll(this.node.id).then(response => {
+        this.activities = response.data
+        this.loading = false
+      }).catch(() => {
+        this.loading = false
+      })
+    },
+
+    save() {
+      this.$refs.ruleForm.validate((valid) => {
+        if (valid) {
+          this.monthCommitForm.projectId = this.node.id
+          add(this.monthCommitForm).then(response => {
+            this.dialogFormVisible = false
+            this.$message.success('保存成功')
+            this.findAll()
+          }).catch(() => {
+
+          })
+        }
+      })
+    },
 
     handleAddMonthCommit() {
+      this.clearCache()
+      this.monthCommitForm = {
+        commitMan: store.getters.username,
+        commitTime: '',
+        projectId: null,
+        remarks: null
+
+      }
       this.dialogFormVisible = true
+    },
+
+    clearCache() {
+      if (this.$refs['ruleForm']) {
+        this.$refs['ruleForm'].resetFields()
+      }
+    },
+    handleEditMonthCommit(activity) {
+      this.drawer = true
+      this.monthCommitForm = {
+        id: activity.id,
+        commitMan: '',
+        commitTime: '',
+        projectId: null,
+        remarks: null
+      }
     },
     handleClose(done) {
       this.$confirm('确认关闭？')

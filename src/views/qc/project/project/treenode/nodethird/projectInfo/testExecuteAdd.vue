@@ -1,8 +1,5 @@
 <template>
   <div>
-    <el-divider content-position="left">
-      <span style="color:#336633;font-size:20px"><svg-icon icon-class="log" />测试执行编辑</span>
-    </el-divider>
     <el-form
       ref="form"
       :rules="rules"
@@ -60,6 +57,7 @@
           label="测试执行数量"
         />
       </el-form-item>
+
       <el-form-item>
         <el-button type="primary" @click="toSubmit">提交</el-button>
       </el-form-item>
@@ -79,6 +77,10 @@ export default {
       type: Number,
       required: true,
       default: 0
+    },
+    monthCommitForm: {
+      type: Object,
+      required: true
     }
   },
   data() {
@@ -90,7 +92,9 @@ export default {
       }
     }
     return {
-      projectExcute: {},
+      projectExcute: {
+        monthCommitId: this.monthCommitForm.id
+      },
       rules: {
         name: [{ required: true, message: '测试执行摘要不能为空', trigger: 'blur' }],
         useTime: [{ validator: valdateUseTime, trigger: 'blur' }],
@@ -140,6 +144,7 @@ export default {
               this.$message.error('提交失败')
             })
           } else {
+            this.projectExcute.monthCommitId = this.monthCommitForm.id
             addProjectExcute(this.projectExcute).then(res => {
               this.$message.success('提交成功')
               this.$emit('closeDrawer')

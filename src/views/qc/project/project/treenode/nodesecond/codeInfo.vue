@@ -217,10 +217,9 @@ export default {
       if (this.code.zy) {
         this.zytshi = '此操作将开启令号, 是否继续?'
       } else {
-        this.zytshi = '此操作将关闭令号, 是否继续?'
+        this.zytshi = '此操作将关闭令号和该令号下所有项目, 是否继续?'
       }
       this.$confirm(this.zytshi, '提示', {
-
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
