@@ -17,7 +17,7 @@
         size="70%"
         append-to-body
       >
-        <span slot="title" style="color:#696969;font-size:20px"><svg-icon icon-class="leida" />    项目月度报表</span>
+        <span slot="title" style="color:#696969;font-size:20px"><svg-icon icon-class="leida" />&emsp;项目月度报表</span>
 
         <addMonthCommit :node="node" :month-commit-form="monthCommitForm" />
 

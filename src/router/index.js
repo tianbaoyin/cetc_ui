@@ -183,6 +183,43 @@ export const asyncRoutes = [
 
     ]
   },
+  // 测试中心
+  {
+    path: '/testCenter',
+    name: '测试中心',
+    component: Layout,
+    alwaysShow: true,
+    redirect: '/testCenter/codeStander',
+    meta: {
+      title: '测试中心',
+      icon: 'bug-report'
+      // roles: ['root', 'document_manager']
+    },
+    children: [
+      {
+        path: 'codeStander',
+        name: 'codeStander',
+        component: () => import('@/views/qc/testCenter/codeStander'),
+        meta: { icon: 'my-check', title: '代码规范' }
+
+      },
+      {
+        path: 'securityVulnerabilities',
+        name: 'securityVulnerabilities',
+        component: () => import('@/views/qc/testCenter/securityVulnerabilities'),
+        meta: { icon: 'supervise', title: '安全漏洞' }
+
+      },
+      {
+        path: 'fpga',
+        name: 'fpga',
+        component: () => import('@/views/qc/testCenter/fpga'),
+        meta: { icon: 'quality2', title: 'FPGA' }
+
+      }
+
+    ]
+  },
 
   // 文档中心
   {
