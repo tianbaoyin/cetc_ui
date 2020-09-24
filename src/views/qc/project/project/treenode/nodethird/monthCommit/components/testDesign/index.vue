@@ -19,77 +19,13 @@
         </el-form-item>
       </el-form>
     </el-card>
-    <!-- <el-button type="primary" size="small" icon="el-icon-plus" @click="handleAdd()">新增</el-button>
-    <div style="margin-top:10px">
-      <el-table
-        :data="dataList"
-        border
-        stripe
-      >
-        <el-table-column
-          align="center"
-          type="index"
-          label="序号"
-          width="80"
-        />
-        <el-table-column
-          label="名称"
-          prop="name"
-        />
-        <el-table-column
-          label="测试需求数"
-          prop="designCount"
-        />
-        <el-table-column
-          label="测试用例设计数"
-          prop="requestCount"
-        />
 
-        <el-table-column
-          width="200px"
-          label="操作"
-        >
-          <template slot-scope="scope">
-            <el-button size="mini" type="primary" icon="el-icon-edit" @click="handleUpdate(scope.row)">编辑 </el-button>
-            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDelete(scope.row)">删除 </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-    <pagination v-show="total>0" :total="total" :page.sync="searchEntity.pageNum" :limit.sync="searchEntity.pageSize" @pagination="pageList()" />
-    <el-dialog
-      title="新增"
-      :close-on-click-modal="false"
-      :visible.sync="dialogVisible"
-      :modal-append-to-body="false"
-      :append-to-body="true"
-      width="600px"
-    >
-
-      <el-form
-        :model="design"
-        label-width="120px"
-      >
-        <el-form-item label="名称">
-          <el-input v-model="design.name" /></el-form-item>
-        <el-form-item label="测试需求数">
-          <el-input v-model="design.requestCount" /></el-form-item>
-        <el-form-item label="测试用例设计数">
-          <el-input v-model="design.designCount" /></el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-      </span>
-    </el-dialog> -->
   </div>
 </template>
 
 <script>
-import pagination from '@/components/Pagination'
 export default {
   components: {
-    pagination
 
   },
   data() {
