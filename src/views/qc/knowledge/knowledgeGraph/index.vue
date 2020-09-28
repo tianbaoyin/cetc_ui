@@ -1,159 +1,189 @@
 <template>
-  <div>
+  <div class="app-container">
+    <div class="filter-container">
+      <el-input
 
-    <h2>Force-Direct Graph</h2>
+        style="width: 200px;"
+        class="filter-item"
+        size="small"
+        placeholder=""
+        clearable
+      />
+      <el-button
+        type="primary"
+        size="small"
+        icon="el-icon-search"
+        class="filter-item"
+      >
+        搜索
+      </el-button>
+      <el-button
+        type="primary"
+        size="small"
+        icon="el-icon-plus"
+        class="filter-item"
+        @click="handleAddNode"
+      >
+        添加节点
+      </el-button>
+      <el-button
+        type="primary"
+        size="small"
+        icon="el-icon-plus"
+        class="filter-item"
+        @click="handleAddRelationship"
+      >
+        添加关系
+      </el-button>
+      <el-button
+        type="primary"
+        size="small"
+        icon="el-icon-paperclip"
+        class="filter-item"
+        @click="handleImportSVG"
+      >
+        SVG导入
+      </el-button>
+    </div>
+    <!-- 添加节点 -->
+    <el-drawer
+      :visible.sync="drawerNode"
+      :before-close="handleCloseNode"
+    >
+      <span slot="title" style="color:#696969;font-size:20px"><svg-icon icon-class="template" />创建节点</span>
+      <el-divider />
+      <div class="app-container">
+        <el-form>
+          <el-form-item
+            label="节点"
+          >
+            <el-select placeholder="请选择">
+              <el-option
+                v-for="item in nodeOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-drawer>
+    <!-- 添加关系 -->
+    <el-drawer
+      :visible.sync="drawerRelationship"
+      :before-close="handleCloseRelationship"
+    >
+      <span slot="title" style="color:#696969;font-size:20px"><svg-icon icon-class="myapply" />建立关系</span>
 
-    <svg width="960" height="600" />
-
+    </el-drawer>
+    <!-- 导入SVG -->
+    <el-dialog
+      title="SVG 导入"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleCloseSVG"
+    >
+      <el-upload
+        class="upload-demo"
+        action="https://jsonplaceholder.typicode.com/posts/"
+        :on-preview="handlePreview"
+        :on-remove="handleRemove"
+        :before-remove="beforeRemove"
+        multiple
+        :limit="3"
+        :on-exceed="handleExceed"
+        :file-list="fileList"
+      >
+        <el-button size="small" type="primary">点击上传SVG文件</el-button>
+        <div slot="tip" class="el-upload__tip">只能上传svg文件，且不超过500kb</div>
+      </el-upload>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="small" @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" size="small" @click="handleCloseSVG">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
+
 <script>
-import * as d3 from 'd3'
 export default {
   data() {
-    return {}
+    return {
+      dialogVisible: false,
+      drawerRelationship: false,
+      drawerNode: false,
+      node: {
+        type: '',
+        attribute: {}
+      },
+      fileList: [],
+      nodeOptions: [{
+        label: '学校',
+        value: 'school'
+      }, {
+        label: '班级',
+        value: 'class'
+      }, {
+        label: '老师',
+        value: 'teacher'
+      }, {
+        label: '学生',
+        value: 'student'
+      }]
+    }
   },
-  mounted() {
-    const marge = { top: 60, bottom: 60, left: 60, right: 60 }
-    const svg = d3.select('svg')
-    const width = svg.attr('width')
-    const height = svg.attr('height')
-    const g = svg.append('g')
-      .attr('transform', 'translate(' + marge.top + ',' + marge.left + ')')
-
-    // 准备数据
-    // 节点集
-    const nodes = [
-      { name: '湖南邵阳' },
-      { name: '山东泰安' },
-      { name: '广东阳江' },
-      { name: '山西太原' },
-      { name: '亮' },
-      { name: '丽' },
-      { name: '雪' },
-      { name: '小明' },
-      { name: '组长' }
-    ]
-    // 边集
-    const edges = [
-      { source: 0, target: 4, relation: '籍贯', value: 1.3 },
-      { source: 4, target: 5, relation: '舍友', value: 1 },
-      { source: 4, target: 6, relation: '舍友', value: 1 },
-      { source: 4, target: 7, relation: '舍友', value: 1 },
-      { source: 1, target: 6, relation: '籍贯', value: 2 },
-      { source: 2, target: 5, relation: '籍贯', value: 0.9 },
-      { source: 3, target: 7, relation: '籍贯', value: 1 },
-      { source: 5, target: 6, relation: '同学', value: 1.6 },
-      { source: 6, target: 7, relation: '朋友', value: 0.7 },
-      { source: 6, target: 8, relation: '职责', value: 2 }
-    ]
-    // 设置一个颜色比例尺
-    const colorScale = d3.scaleOrdinal()
-      .domain(d3.range(nodes.length))
-      .range(d3.schemeCategory10)
-    // 新建一个力导向图
-    const forceSimulation = d3.forceSimulation()
-      .force('link', d3.forceLink())
-      .force('charge', d3.forceManyBody())
-      .force('center', d3.forceCenter())
-    // 生成节点数据
-    forceSimulation.nodes(nodes)
-      .on('tick', ticked)
-    // 生成边数据
-    forceSimulation.force('link')
-      .links(edges)
-      .distance(function(d) { // 每一边的长度
-        return d.value * 100
-      })
-    // 设置图形中心位置
-    forceSimulation.force('center')
-      .x(width / 2)
-      .y(height / 2)
-    // // 顶点集，边集
-    // console.log(nodes)
-    // console.log(edges)
-    // 绘制边
-    const links = g.append('g')
-      .selectAll('line')
-      .data(edges)
-      .enter()
-      .append('line')
-      .attr('stroke', function(d, i) {
-        return colorScale(i)
-      })
-      .attr('stroke-width', 1)
-    // 边上的文字
-    const linksText = g.append('g')
-      .selectAll('text')
-      .data(edges)
-      .enter()
-      .append('text')
-      .text(function(d) {
-        return d.relation
-      })
-    // 创建分组
-    const gs = g.selectAll('.circleText')
-      .data(nodes)
-      .enter()
-      .append('g')
-      .attr('transform', function(d) {
-        const cirX = d.x
-        const cirY = d.y
-        return 'translate(' + cirX + ',' + cirY + ')'
-      })
-      .call(d3.drag()
-        .on('start', started)
-        .on('drag', dragged)
-        .on('end', ended)
-      )
-    // 绘制节点
-    gs.append('circle')
-      .attr('r', 10)
-      .attr('fill', function(d, i) {
-        return colorScale(i)
-      })
-    // 文字
-    gs.append('text')
-      .attr('x', -10)
-      .attr('y', -20)
-      .attr('dy', 10)
-      .text(function(d) {
-        return d.name
-      })
-    // ticked
-    function ticked() {
-      links
-        .attr('x1', function(d) { return d.source.x })
-        .attr('y1', function(d) { return d.source.y })
-        .attr('x2', function(d) { return d.target.x })
-        .attr('y2', function(d) { return d.target.y })
-      linksText
-        .attr('x', function(d) { return (d.source.x + d.target.x) / 2 })
-        .attr('y', function(d) { return (d.source.y + d.target.y) / 2 })
-      gs
-        .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')' })
-    }
-    // drag
-    function started(d) {
-      if (!d3.event.active) {
-        forceSimulation.alphaTarget(0.8).restart() // 设置衰减系数，对节点位置移动过程的模拟，数值越高移动越快，数值范围[0, 1]
-      }
-      d.fx = d.x
-      d.fy = d.y
-    }
-    function dragged(d) {
-      d.fx = d3.event.x
-      d.fy = d3.event.y
-    }
-    function ended(d) {
-      if (!d3.event.active) {
-        forceSimulation.alphaTarget(0)
-      }
-      d.fx = null
-      d.fy = null
+  methods: {
+    // ---------------------添加节点-----------------------------------
+    handleAddNode() {
+      this.drawerNode = true
+    },
+    handleCloseNode(done) {
+      this.$confirm('确认关闭？')
+        .then(_ => {
+          done()
+        })
+        .catch(_ => {})
+    },
+    // ---------------------添加关系-----------------------------------
+    handleAddRelationship() {
+      this.drawerRelationship = true
+    },
+    handleCloseRelationship(done) {
+      this.$confirm('确认关闭？')
+        .then(_ => {
+          done()
+        })
+        .catch(_ => {})
+    },
+    // ---------------------SVG-----------------------------------
+    handleImportSVG() {
+      this.dialogVisible = true
+    },
+    handleCloseSVG(done) {
+      this.$confirm('确认关闭？')
+        .then(_ => {
+          done()
+        })
+        .catch(_ => {})
+    },
+    // ---------------文件上传--------------------
+    handleRemove(file, fileList) {
+      console.log(file, fileList)
+    },
+    handlePreview(file) {
+      console.log(file)
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`)
+    },
+    beforeRemove(file, fileList) {
+      return this.$confirm(`确定移除 ${file.name}？`)
     }
   }
 }
 </script>
-<style scoped>
+
+<style>
+
 </style>

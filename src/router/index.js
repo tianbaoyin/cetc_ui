@@ -275,7 +275,13 @@ export const asyncRoutes = [
         path: 'knowledgeGraph',
         name: 'knowledgeGraph',
         component: () => import('@/views/qc/knowledge/knowledgeGraph'),
-        meta: { title: '知识图谱', icon: 'user-add' }
+        meta: { title: '图谱展示', icon: 'ok' }
+      },
+      {
+        path: 'knowledgeList',
+        name: 'knowledgeList',
+        component: () => import('@/views/qc/knowledge/nodeAndLink'),
+        meta: { title: '图谱列表', icon: 'ok' }
       }
     ]
 
