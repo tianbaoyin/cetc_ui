@@ -55,7 +55,8 @@
         width="200"
         fixed="right"
       >
-        <template slot-scope="scope">
+        <!-- slot-scope="scope" -->
+        <template>
           <el-button
             size="small"
             type="primary"

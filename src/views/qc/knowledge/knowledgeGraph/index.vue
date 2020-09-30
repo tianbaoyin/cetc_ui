@@ -2,7 +2,6 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-
         style="width: 200px;"
         class="filter-item"
         size="small"
@@ -44,8 +43,17 @@
       >
         SVG导入
       </el-button>
+      <el-button
+        type="primary"
+        size="small"
+        icon="el-icon-paperclip"
+        class="filter-item"
+        @click="handleImportSVG"
+      >
+        模拟节点右键
+      </el-button>
     </div>
-    <!-- 添加节点 -->
+    <!-- 添加节点抽屉 -->
     <el-drawer
       :visible.sync="drawerNode"
       :before-close="handleCloseNode"
@@ -53,154 +61,17 @@
     >
       <span slot="title" style="color:#696969;font-size:20px"><svg-icon icon-class="template" />创建节点</span>
       <el-divider />
-      <div class="app-container">
-        <el-form
-          ref="nodeForm"
-          :model="node"
-          :rules="Noderules"
-        >
-          <el-form-item
-            label="节点"
-            prop="nodeType"
-          >
-            <el-select
-              v-model="node.nodeType"
-              style="width:85%"
-              size="small"
-              placeholder="选择节点"
-            >
-              <el-option
-                v-for="item in nodeOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-
-          <el-row v-for="(item,index) in node.attributes" :key="index" :gutter="10">
-            <el-col :span="8">
-              <el-form-item>
-                <el-input v-model="item.key" size="small" placeholder="属性名" @blur="checkHas(item.key)" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item>
-                <el-input v-model="item.value" size="small" placeholder="属性值" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="4">
-              <el-form-item>
-                <el-button size="small" type="danger" icon="el-icon-delete" @click="deleteAttributes(item)" />
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-divider />
-          <el-form-item>
-            <el-button size="small" type="primary" @click="handleCommitNode">创建</el-button>
-            <el-button size="small" @click="closeNodeDrawer">取消</el-button>
-            <el-button type="primary" size="small" @click="addAttributes">添加节点属性</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
+      <addNode ref="addNodeInDrawer" @closeDrawer="closeDrawer" />
     </el-drawer>
-    <!-- 添加关系 -->
+    <!-- 添加关系抽屉 -->
     <el-drawer
       :visible.sync="drawerRelationship"
       :before-close="handleCloseRelationship"
     >
       <span slot="title" style="color:#696969;font-size:20px"><svg-icon icon-class="myapply" />建立关系</span>
-      <div class="app-container">
-        <el-form
-          ref="relationshipForm"
-          :model="relationship"
-          :rules="relationshipRules"
-        >
-          <el-form-item
-            label="源节点"
-            prop="nodeType"
-            label-width="80px"
-          >
-            <el-select
-              v-model="relationship.source"
-              style="width:90%"
-              size="small"
-              placeholder="选择节点"
-            >
-              <el-option
-                v-for="item in nodeOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item
-            label="目标节点"
-            prop="nodeType"
-            label-width="80px"
-          >
-            <el-select
-              v-model="relationship.target"
-              style="width:90%"
-              size="small"
-              placeholder="选择节点"
-            >
-              <el-option
-                v-for="item in nodeOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item
-            label="关系"
-            prop="nodeType"
-            label-width="80px"
-          >
-            <el-select
-              v-model="relationship.shipType.name"
-              style="width:90%"
-              size="small"
-              placeholder="选择节点"
-            >
-              <el-option
-                v-for="item in relationshipOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-divider content-position="left">关系属性</el-divider>
-          <el-row v-for="(item,index) in node.attributes" :key="index" :gutter="10">
-            <el-col :span="8">
-              <el-form-item>
-                <el-input v-model="item.key" size="small" placeholder="属性名" @blur="checkHas(item.key)" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item>
-                <el-input v-model="item.value" size="small" placeholder="属性值" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="4">
-              <el-form-item>
-                <el-button size="small" type="danger" icon="el-icon-delete" @click="deleteAttributes(item)" />
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-divider />
-          <el-form-item>
-            <el-button size="small" type="primary" @click="handleCommitNode">创建</el-button>
-            <el-button size="small" @click="closeNodeDrawer">取消</el-button>
-            <el-button type="primary" size="small" @click="addAttributes">添加关系属性</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
+      <buildRelationship ref="buildRelationshipInDrawer" @closeDrawer="closeDrawer" />
     </el-drawer>
-    <!-- 导入SVG -->
+    <!-- 导入SVG模态框 -->
     <el-dialog
       title="SVG 导入"
       :visible.sync="dialogVisible"
@@ -231,172 +102,60 @@
 </template>
 
 <script>
-import graph from '@/views/qc/knowledge/knowledgeGraph/graph.vue'
+import graph from '@/views/qc/knowledge/knowledgeGraph/pages/graph.vue'
+import addNode from '@/views/qc/knowledge/knowledgeGraph/pages/addNode.vue'
+import buildRelationship from '@/views/qc/knowledge/knowledgeGraph/pages/buildRelationship.vue'
 export default {
   components: {
-    graph
+    graph,
+    addNode,
+    buildRelationship
   },
   data() {
     return {
+
       // --------------------节点的-----------------------
-      dialogVisible: false,
-
       drawerNode: false,
-      attributesIndex: 1,
-
-      node: {
-        nodeType: '',
-        attributes: [
-          { key: '名称', value: '' }
-        ]
-      },
-      Noderules: {
-        nodeType: [
-          { required: true, message: '请选择节点类型', trigger: 'change' }
-        ]
-      },
-
-      nodeOptions: [
-        {
-          label: '学校',
-          value: 'school'
-        },
-        {
-          label: '班级',
-          value: 'class'
-        },
-        {
-          label: '老师',
-          value: 'teacher'
-        },
-        {
-          label: '学生',
-          value: 'student'
-        }],
       // -------------------关系-------------------------------------
       drawerRelationship: false,
-      relationship: {
-        source: {}, // 开始节点
-        target: {}, // 结束节点
-        shipType: { // 关系
-          name: '',
-          attributes: [// 关系属性
-            { key: '名称', value: '' }
-          ]
-        }
-
-      },
-      relationshipOptions: [
-        {
-          label: '同事',
-          value: 'colleague'
-        },
-        {
-          label: '同学',
-          value: 'classmate'
-        },
-        {
-          label: '老师',
-          value: 'teacher'
-        },
-        {
-          label: '学生',
-          value: 'student'
-        }],
-      relationshipRules: {
-
-      },
       // -------------------svg-------------------------------------
+      dialogVisible: false,
       fileList: []
     }
   },
   methods: {
+    // ---------------------公共------------------------
+    closeDrawer(drawer) {
+      // 此方法供子组件调用，只负责关闭抽屉，调用前应先清空form
+      if (drawer === 'drawerNode') {
+        this.drawerNode = false
+      }
+      if (drawer === 'drawerRelationship') {
+        this.drawerRelationship = false
+      }
+    },
     // ---------------------添加节点-----------------------------------
     handleAddNode() {
       this.drawerNode = true
-    },
-    handleCloseNode(done) {
-      this.$confirm('确认关闭？')
-        .then(_ => {
-          this.node = {
-            nodeType: '',
-            attributes: [
-              { key: '名称', value: '' }
-            ]
-          }
-          this.$refs.nodeForm.resetFields()
-          done()
-        })
-        .catch(_ => {})
-    },
-    closeNodeDrawer() {
-      this.$confirm('确认关闭？')
-        .then(_ => {
-          this.node = {
-            nodeType: '',
-            attributes: [
-              { key: '名称', value: '' }
-            ]
-          }
-          this.$refs.nodeForm.resetFields()
-          this.drawerNode = false
-        })
-        .catch(_ => {})
-    },
-    addAttributes() {
-      this.node.attributes.push(
-        {
-          key: '属性' + this.attributesIndex,
-          value: '属性值' + this.attributesIndex
-        }
-      )
-      this.attributesIndex++
-    },
-    deleteAttributes(item) {
-      const index = this.node.attributes.indexOf(item)
-      this.node.attributes.splice(index, 1)
-    },
-    handleCommitNode() {
-      this.$refs['nodeForm'].validate((valid) => {
-        if (valid) {
-          console.log(this.node)
-          console.log('提交了')
-          alert('提交了')
-        }
-      })
-    },
-    checkHas(itemKey) {
-      const keyArray = []// 值数
-      keyArray.push(itemKey) // 将要判断的值放入数组
-      this.node.attributes.forEach((item) => {
-        keyArray.push(item.key)
-      })
-      let count = 0
-      keyArray.forEach((item) => {
-        if (item === itemKey) {
-          count++
-        }
-      })
-
-      console.log(itemKey + '出现的次数', count)
-      if (count > 2) {
-        this.$alert('"' + itemKey + '"已经存在,请使用其他属性', '提示', {
-          confirmButtonText: '我去修改',
-          callback: action => {
-          }
-        })
+      if (this.$refs.addNodeInDrawer) {
+        this.$refs.addNodeInDrawer.initForm() // 让组件表单初始化
       }
     },
+    handleCloseNode(done) {
+      // 调用子组件的方法关闭抽屉，这样可以初始化表单
+      this.$refs.addNodeInDrawer.closeNodeDrawer()
+    },
+
     // ---------------------添加关系-----------------------------------
     handleAddRelationship() {
       this.drawerRelationship = true
+      if (this.$refs.buildRelationshipInDrawer) {
+        this.$refs.buildRelationshipInDrawer.initForm() // 让组件表单初始化
+      }
     },
     handleCloseRelationship(done) {
-      this.$confirm('确认关闭？')
-        .then(_ => {
-          done()
-        })
-        .catch(_ => {})
+      // 调用子组件的方法关闭抽屉，这样可以初始化表单
+      this.$refs.buildRelationshipInDrawer.closeRelationShipDrawer()
     },
     // ---------------------SVG-----------------------------------
     handleImportSVG() {

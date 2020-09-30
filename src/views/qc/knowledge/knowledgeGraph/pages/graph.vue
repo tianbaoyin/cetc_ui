@@ -83,7 +83,6 @@ export default {
       .enter()
       .append('text')
       .text(function(d, i) {
-        console.log(d)
         return i
       })
     function dragsarted(d) {

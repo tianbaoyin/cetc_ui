@@ -11,8 +11,8 @@
 </template>
 
 <script>
-import node from '@/views/qc/knowledge/pages/node.vue'
-import relationship from '@/views/qc/knowledge/pages/relationship.vue'
+import node from '@/views/qc/knowledge/nodeAndLink/pages/node.vue'
+import relationship from '@/views/qc/knowledge/nodeAndLink/pages/relationship.vue'
 export default {
   name: 'KnowledgeList',
   components: {

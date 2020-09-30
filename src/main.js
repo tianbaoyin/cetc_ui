@@ -17,12 +17,9 @@ import '@/permission' // permission control
 import * as filters from './filters'
 import './utils/dialog'
 import preventReClick from '@/utils/preventReClick.js'
-// 引入form-create表单生成器
-import formCreate from '@form-create/element-ui'
+
 // set ElementUI lang to EN
 Vue.use(ElementUI, { locale })
-// 使用form-create
-Vue.use(formCreate)
 
 Vue.use(uploader)
 Object.keys(filters).forEach(key => {
