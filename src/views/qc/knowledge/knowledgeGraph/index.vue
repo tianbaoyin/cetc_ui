@@ -43,15 +43,6 @@
       >
         SVG导入
       </el-button>
-      <el-button
-        type="primary"
-        size="small"
-        icon="el-icon-paperclip"
-        class="filter-item"
-        @click="handleImportSVG"
-      >
-        模拟节点右键
-      </el-button>
     </div>
     <!-- 添加节点抽屉 -->
     <el-drawer

@@ -95,9 +95,6 @@
 export default {
   name: 'BuildRelationship',
   data() {
-    var nodeSourceCheck = (rule, value, callback) => {
-      console.log(value)
-    }
     return {
       relationshipAttributesIndex: 1,
       relationship: {

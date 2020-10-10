@@ -1,5 +1,12 @@
 <template>
   <div>
+    <div id="menu" class="menu" style="display:none">
+      <ul>
+        <li class="menu_item" @click="addNode"><i class="el-icon-plus" /> 添 加</li>
+        <li class="menu_item" @click="editNode"><i class="el-icon-edit" /> 编 辑</li>
+        <li class="menu_item" @click="deleteNode"><i class="el-icon-delete" /> 删 除</li>
+      </ul>
+    </div>
     <svg id="viz" />
   </div>
 </template>
@@ -8,6 +15,11 @@ import * as d3 from 'd3'
 import jsonData from '@/assets/json/miserables.json'
 export default {
   name: 'FoceSimulation',
+  data() {
+    return {
+      currentNode: null
+    }
+  },
   mounted() {
     const width = 1850
     const height = 800
@@ -36,12 +48,20 @@ export default {
       .force('y', d3.forceY(height / 2).strength(1))
       .force('link', d3.forceLink(graph.links).id(function(d) { return d.id }).distance(50).strength(1))
       .on('tick', ticked)
+    const adjlist = []
+    graph.links.forEach(function(d) {
+      adjlist[d.source.index + '-' + d.target.index] = true
+      adjlist[d.target.index + '-' + d.source.index] = true
+    })
+    function neigh(a, b) {
+      return a === b || adjlist[a + '-' + b]
+    }
     const svg = d3.select('#viz').attr('width', width).attr('height', height)
     const container = svg.append('g')
     svg.call(
       d3.zoom()
         .scaleExtent([0.1, 4])
-        .on('zoom', function() {
+        .on('zoom', () => {
           container.attr('transform', d3.event.transform)
         })
 
@@ -67,6 +87,10 @@ export default {
         .on('drag', dragged)
         .on('end', dragended)
     )
+    // 给节点添加鼠标事件
+    node.on('mouseover', focus)
+      .on('mouseout', unfocus)
+      .on('click', this.showMenu)
     const labelNode = container.append('g').attr('class', 'labelNodes')
       .selectAll('text')
       .data(label.nodes)
@@ -85,6 +109,7 @@ export default {
       .text(function(d, i) {
         return i
       })
+
     function dragsarted(d) {
       d3.event.sourceEvent.stopPropagation()
       if (!d3.event.active) {
@@ -92,10 +117,16 @@ export default {
       }
       d.fx = d.x
       d.fy = d.y
+      d3.select('#menu')
+        .style('left', d3.event.x + 20 + 'px')
+        .style('top', d3.event.y + 160 + 'px')
     }
     function dragged(d) {
       d.fx = d3.event.x
       d.fy = d3.event.y
+      d3.select('#menu')
+        .style('left', d.x + 20 + 'px')
+        .style('top', d.y + 160 + 'px')
     }
     function dragended(d) {
       if (!d3.event.active) {
@@ -103,6 +134,30 @@ export default {
       }
       d.fx = d.x
       d.fy = d.y
+      d3.select('#menu')
+        .style('left', d3.event.x + 20 + 'px')
+        .style('top', d3.event.y + 160 + 'px')
+    }
+    function focus() {
+      const index = d3.select(d3.event.target).datum().index
+      node.style('opacity', function(o) {
+        return neigh(index, o.index) ? 1 : 0.1
+      })
+      labelNode.attr('display', function(o) {
+        return neigh(index, o.node.index) ? 'block' : 'none'
+      })
+      link.style('opacity', function(o) {
+        return o.source.index === index || o.target.index === index ? 1 : 0.1
+      })
+      linkText.style('opacity', function(o) {
+        return o.source.index === index || o.target.index === index ? 1 : 0.1
+      })
+    }
+    function unfocus() {
+      labelNode.attr('display', 'block')
+      node.style('opacity', 1)
+      link.style('opacity', 1)
+      linkText.style('opacity', 1)
     }
     function ticked() {
       node.call(updateNode)
@@ -147,6 +202,79 @@ export default {
       text.attr('x', function(d) { return (d.source.x + d.target.x) / 2 })
         .attr('y', function(d) { return (d.source.y + d.target.y) / 2 })
     }
+    // function showMenu(d) {
+    //   console.log(d3.event.x)
+    //   console.log(d3.event.y)
+
+    //   d3.select('#menu')
+    //     .style('display', 'block')
+    //     .style('left', d3.event.x - 200 + 'px')
+    //     .style('top', d3.event.y + 0 + 'px')
+    //   // 给整个document添加监听鼠标事件，点击任何位置执行foo方法
+    // }
+  },
+  methods: {
+    showMenu(d) {
+      console.log(d)
+      this.currentNode = d
+      d3.select('#menu')
+        .style('display', 'block')
+        .style('left', d3.event.x - 206 + 'px')
+        .style('top', d3.event.y + 5 + 'px')
+      // 给整个document添加监听鼠标事件，点击任何位置执行foo方法
+    },
+    foo() { // 取消鼠标监听事件 菜单栏
+      this.menuVisible = false
+      document.removeEventListener('click', this.foo) // 要及时关掉监听，不关掉的是一个坑，不信你试试，虽然前台显示的时候没有啥毛病，加一个alert你就知道了
+    },
+    addNode() {
+      d3.select('#menu').style('display', 'none')
+      console.log('源节点', this.currentNode)
+    },
+    editNode() {
+      console.log('源节点', this.currentNode)
+    },
+    deleteNode() {
+      d3.select('#menu').style('display', 'none')
+      this.$confirm('确认删除该节点？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message.success('删除成功')
+      }).catch(() => {
+        this.$message.info('已取消删除')
+      })
+    }
   }
+
 }
 </script>
+<style lang="scss" scoped>
+    .menu_item {
+        line-height: 20px;
+        text-align: left;
+        margin-top: 10px;
+    }
+    .menu {
+        height: 100px;
+        width: 80px;
+        position: absolute;
+        border-radius: 10px;
+        border: 1px solid #999999;
+        background-color: #f4f4f4;
+    }
+    ul{
+      list-style:none;
+
+    }
+    li:hover {
+        background-color: #1790ff;
+        color: white;
+    }
+    li{
+      margin-left: -36px;
+      font-size:15px
+      }
+
+</style>
